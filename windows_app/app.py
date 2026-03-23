@@ -105,6 +105,7 @@ class MainWindow(QMainWindow):
 
     def _build_ui(self) -> None:
         central = QWidget()
+        central.setObjectName("appRoot")
         root = QVBoxLayout(central)
         root.setContentsMargins(24, 24, 24, 24)
         root.setSpacing(18)
@@ -112,16 +113,22 @@ class MainWindow(QMainWindow):
         hero = QFrame()
         hero.setObjectName("hero")
         hero_layout = QVBoxLayout(hero)
-        hero_layout.setContentsMargins(24, 22, 24, 22)
-        hero_layout.setSpacing(6)
+        hero_layout.setContentsMargins(28, 24, 28, 24)
+        hero_layout.setSpacing(8)
+
+        badge = QLabel("Windows Edition")
+        badge.setObjectName("heroBadge")
 
         title = QLabel(APP_NAME)
         title.setObjectName("heroTitle")
-        title.setFont(QFont("Segoe UI", 24, QFont.Black))
-        subtitle = QLabel(f"Arraste PDFs ou pastas, escolha a saída e gere o build de {APP_EXE_NAME}.exe para Windows.")
+        title.setFont(QFont("Segoe UI Semibold", 25, QFont.Black))
+        subtitle = QLabel(
+            f"Organize PDFs e pastas em uma fila clara, escolha a saída e processe tudo com {APP_EXE_NAME}.exe no Windows."
+        )
         subtitle.setObjectName("heroSubtitle")
         subtitle.setWordWrap(True)
 
+        hero_layout.addWidget(badge, 0, Qt.AlignLeft)
         hero_layout.addWidget(title)
         hero_layout.addWidget(subtitle)
         root.addWidget(hero)
@@ -138,7 +145,7 @@ class MainWindow(QMainWindow):
 
         queue_title = QLabel("Fila de entrada")
         queue_title.setObjectName("sectionTitle")
-        queue_hint = QLabel("Aceita arquivos PDF e pastas com PDFs.")
+        queue_hint = QLabel("Arraste arquivos PDF ou adicione pastas inteiras para processamento em lote.")
         queue_hint.setObjectName("muted")
 
         self.drop_list = DropListWidget()
@@ -150,12 +157,16 @@ class MainWindow(QMainWindow):
         queue_buttons = QHBoxLayout()
         queue_buttons.setSpacing(10)
         add_files = QPushButton("Adicionar arquivos")
+        add_files.setProperty("role", "secondary")
         add_files.clicked.connect(self.pick_files)
         add_folder = QPushButton("Adicionar pasta")
+        add_folder.setProperty("role", "secondary")
         add_folder.clicked.connect(self.pick_folder)
         remove_selected = QPushButton("Remover selecionados")
+        remove_selected.setProperty("role", "ghost")
         remove_selected.clicked.connect(self.remove_selected_items)
         clear_all = QPushButton("Limpar fila")
+        clear_all.setProperty("role", "ghost")
         clear_all.clicked.connect(self.clear_items)
         for button in [add_files, add_folder, remove_selected, clear_all]:
             queue_buttons.addWidget(button)
@@ -178,10 +189,13 @@ class MainWindow(QMainWindow):
         self.output_label.setObjectName("pathLabel")
 
         pick_output = QPushButton("Escolher pasta de saída")
+        pick_output.setProperty("role", "secondary")
         pick_output.clicked.connect(self.pick_output_dir)
         reset_output = QPushButton("Usar saída automática")
+        reset_output.setProperty("role", "secondary")
         reset_output.clicked.connect(self.reset_output_dir)
         self.open_output_button = QPushButton("Abrir última saída")
+        self.open_output_button.setProperty("role", "secondary")
         self.open_output_button.clicked.connect(self.open_output_dir)
         self.open_output_button.setEnabled(False)
         self.bypass_checkbox = QCheckBox("Pular verificação preliminar de permissões")
@@ -202,6 +216,8 @@ class MainWindow(QMainWindow):
 
         self.status_label = QLabel(f"Pronto para processar com {APP_NAME}")
         self.status_label.setObjectName("statusLabel")
+        run_hint = QLabel("Processe a fila atual e acompanhe o resultado no log abaixo.")
+        run_hint.setObjectName("muted")
         self.progress = QProgressBar()
         self.progress.setRange(0, 1)
         self.progress.setValue(0)
@@ -210,9 +226,11 @@ class MainWindow(QMainWindow):
         self.run_button.setObjectName("primaryButton")
         self.run_button.clicked.connect(self.start_processing)
         copy_log = QPushButton("Copiar log")
+        copy_log.setProperty("role", "ghost")
         copy_log.clicked.connect(self.copy_log)
 
         run_layout.addWidget(self.status_label)
+        run_layout.addWidget(run_hint)
         run_layout.addWidget(self.progress)
         run_layout.addWidget(self.run_button)
         run_layout.addWidget(copy_log)
@@ -249,83 +267,150 @@ class MainWindow(QMainWindow):
     def _apply_style(self) -> None:
         self.setStyleSheet(
             """
+            QWidget#appRoot {
+                background: #efe5d2;
+            }
             QWidget {
-                background: #f4efe5;
-                color: #261b16;
+                background: transparent;
+                color: #201713;
                 font-family: 'Segoe UI', 'Arial';
                 font-size: 14px;
             }
             QFrame#hero {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-                    stop:0 #1f4d3a, stop:0.55 #386641, stop:1 #d6a84f);
-                border-radius: 22px;
+                    stop:0 #18392b, stop:0.42 #24533f, stop:1 #b9822b);
+                border: 1px solid rgba(44, 32, 24, 0.18);
+                border-radius: 24px;
+            }
+            QLabel#heroBadge {
+                background: rgba(246, 220, 167, 0.2);
+                border: 1px solid rgba(250, 240, 215, 0.28);
+                border-radius: 10px;
+                color: #fff3d5;
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: 0.8px;
+                padding: 4px 10px;
             }
             QLabel#heroTitle {
-                color: #fff7df;
-                font-size: 28px;
+                color: #fff5db;
+                font-size: 30px;
                 font-weight: 900;
             }
             QLabel#heroSubtitle {
-                color: rgba(255, 247, 223, 0.9);
+                color: rgba(255, 244, 222, 0.92);
                 font-size: 14px;
+                line-height: 1.35em;
             }
             QFrame#card, QFrame#cardAccent {
-                border-radius: 20px;
-                border: 1px solid #d2c2a8;
+                border-radius: 22px;
+                border: 1px solid #d2bc98;
             }
             QFrame#card {
-                background: #fffaf1;
+                background: rgba(255, 249, 239, 0.96);
             }
             QFrame#cardAccent {
-                background: #f2dfb5;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 #f3dfb0, stop:1 #ebce8f);
             }
             QLabel#sectionTitle {
                 font-size: 18px;
                 font-weight: 700;
             }
             QLabel#muted, QLabel#pathLabel {
-                color: #6d5d4f;
+                color: #5b483a;
             }
             QLabel#statusLabel {
                 font-size: 18px;
                 font-weight: 700;
+                color: #2f241d;
             }
             QListWidget#dropList, QPlainTextEdit#logView {
-                background: #fffdf7;
-                border: 1px solid #d9ccb8;
-                border-radius: 16px;
-                padding: 8px;
+                background: #fffdf8;
+                border: 1px solid #d5c1a4;
+                border-radius: 18px;
+                padding: 10px;
+                color: #201713;
+                selection-background-color: #24533f;
+                selection-color: #fff6e1;
+            }
+            QListWidget#dropList::item, QPlainTextEdit#logView {
+                font-size: 14px;
+            }
+            QListWidget#dropList::item {
+                border-radius: 10px;
+                margin: 2px 0;
+                padding: 8px 10px;
+            }
+            QListWidget#dropList::item:selected {
+                background: #24533f;
+                color: #fff6e1;
             }
             QPushButton {
-                background: #ede1c6;
-                border: 1px solid #c2a36a;
-                border-radius: 12px;
-                padding: 10px 14px;
-                font-weight: 600;
+                background: #ead8b2;
+                border: 1px solid #b78d4b;
+                border-radius: 14px;
+                color: #2b2018;
+                padding: 11px 14px;
+                font-weight: 700;
             }
             QPushButton:hover {
-                background: #e5d5b0;
+                background: #e2cb99;
+            }
+            QPushButton[role="secondary"] {
+                background: #f6ead2;
+                border: 1px solid #d3b27b;
+            }
+            QPushButton[role="secondary"]:hover {
+                background: #efdfc0;
+            }
+            QPushButton[role="ghost"] {
+                background: rgba(255, 250, 241, 0.7);
+                border: 1px solid #d9c5a0;
+            }
+            QPushButton[role="ghost"]:hover {
+                background: rgba(246, 232, 205, 0.95);
             }
             QPushButton#primaryButton {
-                background: #1f4d3a;
-                color: #fff7df;
-                border: 1px solid #17382b;
-                font-size: 15px;
+                background: #1e503c;
+                color: #fff6df;
+                border: 1px solid #123124;
+                font-size: 16px;
+                min-height: 38px;
             }
             QPushButton#primaryButton:hover {
-                background: #2a654c;
+                background: #28694f;
+            }
+            QPushButton:disabled {
+                background: #d9c8ab;
+                color: #8d7b68;
+                border-color: #c7b393;
             }
             QProgressBar {
-                background: #ddcfb6;
-                border-radius: 8px;
-                min-height: 14px;
+                background: rgba(255, 249, 235, 0.72);
+                border: 1px solid #cfb88c;
+                border-radius: 9px;
+                min-height: 16px;
             }
             QProgressBar::chunk {
                 border-radius: 8px;
-                background: #7f4f24;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #2f6b50, stop:1 #bc7f2d);
             }
             QCheckBox {
                 spacing: 8px;
+                color: #3b2d24;
+            }
+            QCheckBox::indicator {
+                width: 16px;
+                height: 16px;
+                border-radius: 4px;
+                border: 1px solid #9b7b4a;
+                background: #fff9ed;
+            }
+            QCheckBox::indicator:checked {
+                background: #24533f;
+                border: 1px solid #17382b;
             }
             """
         )
