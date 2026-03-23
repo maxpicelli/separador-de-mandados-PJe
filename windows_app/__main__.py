@@ -1,4 +1,4 @@
-from .app import run
+from windows_app.app import run
 
 
 if __name__ == "__main__":

@@ -25,8 +25,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from . import APP_EXE_NAME, APP_NAME, APP_VERSION
-from .backend import process_target
+from windows_app import APP_EXE_NAME, APP_NAME, APP_VERSION
+from windows_app.backend import process_target
 
 
 class DropListWidget(QListWidget):
