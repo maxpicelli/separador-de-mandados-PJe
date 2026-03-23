@@ -108,5 +108,4 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
     icon=str(icon_file) if icon_file.exists() else None,
-    onefile=True,
 )

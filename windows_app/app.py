@@ -53,10 +53,7 @@ class DropListWidget(QListWidget):
         if not event.mimeData().hasUrls():
             event.ignore()
             return
-        paths = []
-        for url in event.mimeData().urls():
-            if url.isLocalFile():
-                paths.append(url.toLocalFile())
+        paths = [url.toLocalFile() for url in event.mimeData().urls() if url.isLocalFile()]
         self.filesDropped.emit(paths)
         event.acceptProposedAction()
 
