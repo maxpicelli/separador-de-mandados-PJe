@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scheme
+   LastUpgradeVersion = "1640"
+   version = "1.8">
+   <BuildAction
+      parallelizeBuildables = "YES"
+      buildImplicitDependencies = "YES"
+      buildArchitectures = "Automatic">
+      <PostActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "Run Script"
+               scriptText = "#!/bin/zsh&#10;set -euo pipefail&#10;&#10;# Rode s&#xf3; ap&#xf3;s build (ignore clean, indexbuild, etc.)&#10;if [[ &quot;${ACTION:-}&quot; != &quot;build&quot; ]]; then&#10;  echo &quot;Post-action ignorada (ACTION=$ACTION)&quot;&#10;  exit 0&#10;fi&#10;&#10;# (opcional) limite ao Debug&#10;# if [[ &quot;${CONFIGURATION:-}&quot; != &quot;Debug&quot; ]]; then exit 0; fi&#10;&#10;SRC=&quot;${BUILT_PRODUCTS_DIR}/${FULL_PRODUCT_NAME}&quot;&#10;&#10;# Se o app ainda n&#xe3;o existe, n&#xe3;o falhe &#x2013; apenas saia silenciosamente&#10;if [[ ! -d &quot;$SRC&quot; ]]; then&#10;  echo &quot;App n&#xe3;o encontrado em: $SRC (provavelmente Clean). Saindo sem erro.&quot;&#10;  exit 0&#10;fi&#10;&#10;# Nome de sa&#xed;da no Desktop&#10;DEST=&quot;$HOME/Desktop/${PRODUCT_NAME} - Debug X86-Arm64.app&quot;&#10;&#10;# Copiar e revelar no Finder&#10;rm -rf &quot;$DEST&quot;&#10;/usr/bin/ditto &quot;$SRC&quot; &quot;$DEST&quot;&#10;/usr/bin/open -R &quot;$DEST&quot;&#10;&#10;echo &quot;Copiado para: $DEST&quot;&#10;"
+               shellToInvoke = "/bin/zsh">
+               <EnvironmentBuildable>
+                  <BuildableReference
+                     BuildableIdentifier = "primary"
+                     BlueprintIdentifier = "1EACD39E2E4E118B00ADCC7F"
+                     BuildableName = "Separador de Mandados.app"
+                     BlueprintName = "Separador de Mandados"
+                     ReferencedContainer = "container:Separador de Mandados.xcodeproj">
+                  </BuildableReference>
+               </EnvironmentBuildable>
+            </ActionContent>
+         </ExecutionAction>
+      </PostActions>
+      <BuildActionEntries>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "1EACD39E2E4E118B00ADCC7F"
+               BuildableName = "Separador de Mandados.app"
+               BlueprintName = "Separador de Mandados"
+               ReferencedContainer = "container:Separador de Mandados.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+      </BuildActionEntries>
+   </BuildAction>
+   <TestAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      shouldAutocreateTestPlan = "YES">
+   </TestAction>
+   <LaunchAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      launchStyle = "0"
+      useCustomWorkingDirectory = "NO"
+      ignoresPersistentStateOnLaunch = "NO"
+      debugDocumentVersioning = "YES"
+      debugServiceExtension = "internal"
+      allowLocationSimulation = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "1EACD39E2E4E118B00ADCC7F"
+            BuildableName = "Separador de Mandados.app"
+            BlueprintName = "Separador de Mandados"
+            ReferencedContainer = "container:Separador de Mandados.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </LaunchAction>
+   <ProfileAction
+      buildConfiguration = "Release"
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      savedToolIdentifier = ""
+      useCustomWorkingDirectory = "NO"
+      debugDocumentVersioning = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "1EACD39E2E4E118B00ADCC7F"
+            BuildableName = "Separador de Mandados.app"
+            BlueprintName = "Separador de Mandados"
+            ReferencedContainer = "container:Separador de Mandados.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </ProfileAction>
+   <AnalyzeAction
+      buildConfiguration = "Debug">
+   </AnalyzeAction>
+   <ArchiveAction
+      buildConfiguration = "Release"
+      revealArchiveInOrganizer = "YES">
+   </ArchiveAction>
+</Scheme>

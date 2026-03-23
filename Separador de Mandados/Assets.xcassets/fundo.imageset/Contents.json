@@ -1,0 +1,33 @@
+{
+  "images" : [
+    {
+      "filename" : "Captura de Tela 2025-08-17 às 05.48.37 4.png",
+      "idiom" : "universal",
+      "scale" : "1x"
+    },
+    {
+      "filename" : "Captura de Tela 2025-08-17 às 05.48.37 3.png",
+      "idiom" : "universal",
+      "scale" : "2x"
+    },
+    {
+      "filename" : "Captura de Tela 2025-08-17 às 05.48.37 2.png",
+      "idiom" : "universal",
+      "scale" : "3x"
+    },
+    {
+      "filename" : "Captura de Tela 2025-08-17 às 05.48.37 1.png",
+      "idiom" : "mac",
+      "scale" : "1x"
+    },
+    {
+      "filename" : "Captura de Tela 2025-08-17 às 05.48.37.png",
+      "idiom" : "mac",
+      "scale" : "2x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
