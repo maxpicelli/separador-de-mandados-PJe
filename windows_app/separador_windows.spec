@@ -4,7 +4,8 @@ from pathlib import Path
 
 from PyInstaller.utils.hooks import collect_submodules
 
-from windows_app import APP_EXE_NAME
+
+APP_EXE_NAME = "Separador-de-Mandados-PJe"
 
 
 project_root = Path(SPECPATH)
