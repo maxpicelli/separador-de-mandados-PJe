@@ -8,18 +8,19 @@ from PyInstaller.utils.hooks import collect_submodules
 APP_EXE_NAME = "Separador-de-Mandados-PJe"
 
 
-project_root = Path(SPECPATH)
+app_root = Path(SPECPATH)
+project_root = app_root.parent
 hiddenimports = collect_submodules("pdfplumber") + collect_submodules("pypdf")
 
-icon_file = project_root / "windows_app" / "assets" / "app_icon.ico"
-png_icon = project_root / "windows_app" / "assets" / "app_icon.png"
+icon_file = app_root / "assets" / "app_icon.ico"
+png_icon = app_root / "assets" / "app_icon.png"
 datas = [(str(png_icon), "windows_app/assets")] if png_icon.exists() else []
 
 block_cipher = None
 
 
 a = Analysis(
-    [str(project_root / "windows_app" / "__main__.py")],
+    [str(app_root / "__main__.py")],
     pathex=[str(project_root)],
     binaries=[],
     datas=datas,
