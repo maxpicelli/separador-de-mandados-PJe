@@ -41,6 +41,7 @@ jobs:
         with:
           name: separador-de-mandados-PJe-windows
           path: |
-            dist\Separador-de-Mandados-PJe.exe
+            dist\**
             README-Windows.md
+          if-no-files-found: error
 
