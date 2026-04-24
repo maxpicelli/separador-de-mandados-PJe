@@ -40,3 +40,16 @@ git push -u origin main
 Consulte `README-Windows.md`.
 
 # New Line
+
+## Clonagem e Abertura no Xcode (Legacy AppKit)
+
+Para clonar e abrir o antigo projeto macOS no Xcode:
+
+1. Clone o repositório:
+   ```bash
+   git clone https://github.com/christianmpc/separador-de-mandados-PJe.git
+   ```
+2. Abra o projeto no Xcode:
+   ```bash
+   open Separador\ de\ Mandados\ PJe.xcodeproj
+   ```
