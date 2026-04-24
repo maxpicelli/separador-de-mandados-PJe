@@ -38,3 +38,5 @@ git push -u origin main
 ## Rodar localmente para desenvolvimento
 
 Consulte `README-Windows.md`.
+
+# New Line
