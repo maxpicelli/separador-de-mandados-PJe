@@ -15,5 +15,5 @@ git clone https://github.com/maxpicelli/separador-de-mandados-PJe.git && cd sepa
 Para clonar o projeto e abrir no Xcode, execute:
 
 ```bash
-git clone https://github.com/maxpicelli/separador-de-mandados-PJe.git && cd separador-de-mandados-PJe && open Separador\ de\ Mandados\ PJe.xcodeproj
+git clone https://github.com/maxpicelli/separador-de-mandados-PJe.git && cd separador-de-mandados-PJe && open -a Xcode "Separador de Mandados.xcodeproj"
 ```
