@@ -149,6 +149,11 @@ def extrair_destinatario(texto: str) -> str:
         nome = re.sub(r"^[^\wÁÉÍÓÚÂÊÔÃÕÇ]+", "", nome)
         nome = re.sub(r"[^\wÁÉÍÓÚÂÊÔÃÕÇ\s]+$", "", nome)
         nome = re.sub(r"\s+", " ", nome)
+        # Remove sufixos opcionais como (a), (o), (a)(s), (s) ao final do nome
+        nome = re.sub(r"\s*\((a|o|as|os|a\)\(s|o\)\(s)?|s)\)$", "", nome, flags=re.IGNORECASE)
+        nome = re.sub(r"\s*\((a|o|s)\)$", "", nome, flags=re.IGNORECASE)
+        nome = re.sub(r"\s*\((a|o|s){1,2}\)$", "", nome, flags=re.IGNORECASE)
+        nome = nome.strip()
         if len(nome) >= 3 and re.search(r"[A-Za-zÁÉÍÓÚÂÊÔÃÕÇà-ü]", nome):
             return nome
 

@@ -132,17 +132,45 @@ ROTULOS_DEST = [
 ]
 
 def extrair_destinatario(texto: str) -> str:
-    for pat in ROTULOS_DEST:
-        m = re.search(pat, texto, flags=re.MULTILINE)
-        if not m: continue
-        bruto = m.group(1).strip()
-        nome = re.split(r"[,\-–;|\n\r]", bruto, maxsplit=1)[0].strip()
+    # Busca todas as ocorrências de Destinatário (com e sem acento) e pega a última
+    # Busca todas as ocorrências de Destinatário (com ou sem acento, com ou sem outros rótulos juntos)
+    matches = list(re.finditer(r"Destinatári[oa][^:]{0,30}:\s*([^\n\r]+)", texto, flags=re.IGNORECASE))
+    if matches:
+        m = matches[-1]  # pega a última ocorrência
+        nome = m.group(1).strip()
+        # Limpa separadores e informações extras após o nome
+        nome = re.split(r"[,/\\-–;|\n\r]", nome, maxsplit=1)[0].strip()
         nome = re.sub(r"\s+(CPF|CNPJ|RG|ID)\b.*$", "", nome, flags=re.IGNORECASE).strip()
         nome = re.sub(r"^[^\wÁÉÍÓÚÂÊÔÃÕÇ]+", "", nome)
         nome = re.sub(r"[^\wÁÉÍÓÚÂÊÔÃÕÇ\s]+$", "", nome)
         nome = re.sub(r"\s+", " ", nome)
         if len(nome) >= 3 and re.search(r"[A-Za-zÁÉÍÓÚÂÊÔÃÕÇà-ü]", nome):
             return nome
+    # 2. Se não encontrar, tenta os outros rótulos
+    for pat in [
+        r"Intimado:\s*([^\n\r]+)",      r"INTIMADO:\s*([^\n\r]+)",
+        r"Notificado:\s*([^\n\r]+)",    r"NOTIFICADO:\s*([^\n\r]+)",
+        r"Citado:\s*([^\n\r]+)",        r"CITADO:\s*([^\n\r]+)",
+        r"Reclamado:\s*([^\n\r]+)",     r"RECLAMADO:\s*([^\n\r]+)",
+        r"Executado:\s*([^\n\r]+)",     r"EXECUTADO:\s*([^\n\r]+)",
+        r"Réu:\s*([^\n\r]+)",           r"RÉU:\s*([^\n\r]+)",
+        r"Requerido:\s*([^\n\r]+)",     r"REQUERIDO:\s*([^\n\r]+)",
+        r"Para:\s*([^\n\r]+)",          r"PARA:\s*([^\n\r]+)",
+        r"A:\s*([^\n\r]+)",             r"Ao:\s*([^\n\r]+)",
+        r"Autor:\s*([^\n\r]+)",         r"AUTOR:\s*([^\n\r]+)"
+    ]:
+        m = re.search(pat, texto, flags=re.MULTILINE)
+        if m:
+            bruto = m.group(1).strip()
+            nome = bruto
+            nome = re.sub(r"^.*?:", "", nome).strip()
+            nome = re.split(r"[,/\-–;|\n\r]", nome, maxsplit=1)[0].strip()
+            nome = re.sub(r"\s+(CPF|CNPJ|RG|ID)\b.*$", "", nome, flags=re.IGNORECASE).strip()
+            nome = re.sub(r"^[^\wÁÉÍÓÚÂÊÔÃÕÇ]+", "", nome)
+            nome = re.sub(r"[^\wÁÉÍÓÚÂÊÔÃÕÇ\s]+$", "", nome)
+            nome = re.sub(r"\s+", " ", nome)
+            if len(nome) >= 3 and re.search(r"[A-Za-zÁÉÍÓÚÂÊÔÃÕÇà-ü]", nome):
+                return nome
     return "DESTINATARIO_NAO_ENCONTRADO"
 
 def extrair_mandados(caminho_pdf: str):
