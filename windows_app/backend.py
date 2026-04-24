@@ -138,25 +138,19 @@ ROTULOS_DEST = [
 
 
 def extrair_destinatario(texto: str) -> str:
-    for pattern in ROTULOS_DEST:
-        match = re.search(pattern, texto, flags=re.MULTILINE)
-        if not match:
-            continue
-
-        bruto = match.group(1).strip()
-        nome = re.split(r"[,\-–;|\n\r]", bruto, maxsplit=1)[0].strip()
+    # Busca todas as ocorrências de Destinatário (com ou sem acento, com ou sem outros rótulos juntos)
+    matches = list(re.finditer(r"Destinatári[oa][^:]{0,30}:\s*([^\n\r]+)", texto, flags=re.IGNORECASE))
+    if matches:
+        m = matches[-1]  # pega a última ocorrência
+        nome = m.group(1).strip()
+        # Limpa separadores e informações extras após o nome
+        nome = re.split(r"[,/\\-–;|\n\r]", nome, maxsplit=1)[0].strip()
         nome = re.sub(r"\s+(CPF|CNPJ|RG|ID)\b.*$", "", nome, flags=re.IGNORECASE).strip()
         nome = re.sub(r"^[^\wÁÉÍÓÚÂÊÔÃÕÇ]+", "", nome)
         nome = re.sub(r"[^\wÁÉÍÓÚÂÊÔÃÕÇ\s]+$", "", nome)
         nome = re.sub(r"\s+", " ", nome)
-        # Remove sufixos opcionais como (a), (o), (a)(s), (s) ao final do nome
-        nome = re.sub(r"\s*\((a|o|as|os|a\)\(s|o\)\(s)?|s)\)$", "", nome, flags=re.IGNORECASE)
-        nome = re.sub(r"\s*\((a|o|s)\)$", "", nome, flags=re.IGNORECASE)
-        nome = re.sub(r"\s*\((a|o|s){1,2}\)$", "", nome, flags=re.IGNORECASE)
-        nome = nome.strip()
         if len(nome) >= 3 and re.search(r"[A-Za-zÁÉÍÓÚÂÊÔÃÕÇà-ü]", nome):
             return nome
-
     return "DESTINATARIO_NAO_ENCONTRADO"
 
 
