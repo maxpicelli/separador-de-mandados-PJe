@@ -45,11 +45,7 @@ Consulte `README-Windows.md`.
 
 Para clonar e abrir o antigo projeto macOS no Xcode:
 
-1. Clone o repositório:
+1. Baixe e abra o projeto no Xcode com um único comando:
    ```bash
-   git clone https://github.com/christianmpc/separador-de-mandados-PJe.git
-   ```
-2. Abra o projeto no Xcode:
-   ```bash
-   open Separador\ de\ Mandados\ PJe.xcodeproj
+   git clone https://github.com/christianmpc/separador-de-mandados-PJe.git && cd separador-de-mandados-PJe && open Separador\ de\ Mandados\ PJe.xcodeproj
    ```
