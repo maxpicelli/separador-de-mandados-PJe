@@ -1,3 +1,4 @@
+import Cocoa
 import SwiftUI
 import UniformTypeIdentifiers
 import AppKit
@@ -63,6 +64,33 @@ struct OutlineButtonStyleCompat: ButtonStyle {
 // ============================== VIEW ==============================
 
 struct ContentView: View {
+
+    // MARK: - Fechar app ao fechar janela (botão vermelho)
+    private struct WindowCloseHandler: NSViewRepresentable {
+        func makeNSView(context: Context) -> NSView {
+            let view = NSView()
+            DispatchQueue.main.async {
+                if let window = view.window {
+                    window.delegate = context.coordinator
+                } else {
+                    // Espera a janela ficar disponível
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        if let window = view.window {
+                            window.delegate = context.coordinator
+                        }
+                    }
+                }
+            }
+            return view
+        }
+        func updateNSView(_ nsView: NSView, context: Context) {}
+        func makeCoordinator() -> Coordinator { Coordinator() }
+        class Coordinator: NSObject, NSWindowDelegate {
+            func windowWillClose(_ notification: Notification) {
+                NSApplication.shared.terminate(nil)
+            }
+        }
+    }
     @State private var isTargeted = false
     @State private var messages: [String] = []
 
@@ -96,6 +124,7 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
+            WindowCloseHandler() // Garante que fechar a janela encerra o app
             // Background image
             Image("fundo")
                 .resizable()

@@ -137,14 +137,17 @@ def extrair_destinatario(texto: str) -> str:
     matches = list(re.finditer(r"Destinatári[oa][^:]{0,30}:\s*([^\n\r]+)", texto, flags=re.IGNORECASE))
     if matches:
         m = matches[-1]  # pega a última ocorrência
-        nome = m.group(1).strip()
-        # Limpa separadores e informações extras após o nome
-        nome = re.split(r"[,/\\-–;|\n\r]", nome, maxsplit=1)[0].strip()
+        nome = m.group(1)
+        nome = nome.strip()
+        # Mantém o nome completo, apenas limpa espaços e remove acentos
         nome = re.sub(r"\s+(CPF|CNPJ|RG|ID)\b.*$", "", nome, flags=re.IGNORECASE).strip()
         nome = re.sub(r"^[^\wÁÉÍÓÚÂÊÔÃÕÇ]+", "", nome)
         nome = re.sub(r"[^\wÁÉÍÓÚÂÊÔÃÕÇ\s]+$", "", nome)
         nome = re.sub(r"\s+", " ", nome)
-        if len(nome) >= 3 and re.search(r"[A-Za-zÁÉÍÓÚÂÊÔÃÕÇà-ü]", nome):
+        # Remove acentos
+        import unicodedata
+        nome = unicodedata.normalize('NFKD', nome).encode('ASCII', 'ignore').decode('ASCII')
+        if len(nome) >= 3 and re.search(r"[A-Za-z]", nome):
             return nome
     # 2. Se não encontrar, tenta os outros rótulos
     for pat in [
@@ -164,12 +167,15 @@ def extrair_destinatario(texto: str) -> str:
             bruto = m.group(1).strip()
             nome = bruto
             nome = re.sub(r"^.*?:", "", nome).strip()
-            nome = re.split(r"[,/\-–;|\n\r]", nome, maxsplit=1)[0].strip()
+            # Mantém o nome completo, apenas limpa espaços e remove acentos
             nome = re.sub(r"\s+(CPF|CNPJ|RG|ID)\b.*$", "", nome, flags=re.IGNORECASE).strip()
             nome = re.sub(r"^[^\wÁÉÍÓÚÂÊÔÃÕÇ]+", "", nome)
             nome = re.sub(r"[^\wÁÉÍÓÚÂÊÔÃÕÇ\s]+$", "", nome)
             nome = re.sub(r"\s+", " ", nome)
-            if len(nome) >= 3 and re.search(r"[A-Za-zÁÉÍÓÚÂÊÔÃÕÇà-ü]", nome):
+            # Remove acentos
+            import unicodedata
+            nome = unicodedata.normalize('NFKD', nome).encode('ASCII', 'ignore').decode('ASCII')
+            if len(nome) >= 3 and re.search(r"[A-Za-z]", nome):
                 return nome
     return "DESTINATARIO_NAO_ENCONTRADO"
 
@@ -308,6 +314,8 @@ def agrupar_inteligente(mandados):
                 print(f"    📎 Anexo órfão pág {pa} → {grupos[0]['nome_principal'][:30]}...")
 
         for grp in grupos:
+            # DEBUG: Print de todos os nomes encontrados para o grupo
+            print(f"[DEBUG] Nomes encontrados para o grupo: {grp['nomes_encontrados']}")
             grp["nome_principal"] = escolher_nome_principal(grp["nomes_encontrados"])
             print(f"  └─ {grp['nome_principal'][:40]}... ({len(grp['mandados'])} mandado(s) + {len(grp['anexos'])} anexo(s))")
 
@@ -328,14 +336,21 @@ def salvar_grupos_inteligentes(grupos, pasta_saida: Path, caminho_pdf_original: 
             mand = grupo.get("mandados", [])
             anex = grupo.get("anexos", [])
 
+            # DEBUG: Print do nome do destinatário antes de criar pasta/arquivo
+            print(f"[DEBUG] Nome do destinatário extraído: '{nome}' (proc: {proc})")
+
             nome_pasta = (f"{nome} - {proc}" if nome and nome!="DESTINATARIO_NAO_ENCONTRADO"
                           else f"SEM_DESTINATARIO - {proc}")
             nome_pasta = re.sub(r'[<>:"/\\|?*]', "_", nome_pasta).strip()
             pasta = _ensure_dir(pasta_saida / nome_pasta)
+            # DEBUG: Cria arquivo para confirmar execução do script correto
+            # Removido: criação do arquivo DEBUG_SCRIPT_EXECUTADO.txt
 
             for i, m in enumerate(mand):
                 arq = (f"MANDADO - {nome} - {proc}.pdf" if i==0
                        else f"MANDADO_{i+1:02d} - {nome} - {proc}.pdf")
+                # DEBUG: Print do nome e do nome do arquivo
+                print(f"[DEBUG] Nome usado no arquivo: '{nome}' | Nome do arquivo: '{arq}'")
                 arq = re.sub(r'[<>:"/\\|?*]', "_", arq)
                 out = _unique_file(pasta / arq)
                 w = PyPDF2.PdfWriter()

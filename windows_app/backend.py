@@ -143,8 +143,7 @@ def extrair_destinatario(texto: str) -> str:
     if matches:
         m = matches[-1]  # pega a última ocorrência
         nome = m.group(1).strip()
-        # Limpa separadores e informações extras após o nome
-        nome = re.split(r"[,/\\-–;|\n\r]", nome, maxsplit=1)[0].strip()
+        # Mantém o nome completo, apenas limpa espaços e caracteres indesejados
         nome = re.sub(r"\s+(CPF|CNPJ|RG|ID)\b.*$", "", nome, flags=re.IGNORECASE).strip()
         nome = re.sub(r"^[^\wÁÉÍÓÚÂÊÔÃÕÇ]+", "", nome)
         nome = re.sub(r"[^\wÁÉÍÓÚÂÊÔÃÕÇ\s]+$", "", nome)
