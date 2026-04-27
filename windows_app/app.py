@@ -512,6 +512,19 @@ class MainWindow(QMainWindow):
             self.output_dir = Path(output_dir)
             self.output_label.setText(f"Última saída: {self.output_dir}")
             self.open_output_button.setEnabled(True)
+            # Abrir automaticamente a pasta de saída ao finalizar
+            try:
+                import os, sys
+                if sys.platform == "win32":
+                    os.startfile(str(self.output_dir))
+                elif sys.platform == "darwin":
+                    import subprocess
+                    subprocess.Popen(["open", str(self.output_dir)])
+                else:
+                    import subprocess
+                    subprocess.Popen(["xdg-open", str(self.output_dir)])
+            except Exception as e:
+                print(f"Não foi possível abrir a pasta de saída: {e}")
         QMessageBox.information(self, APP_NAME, "Processamento concluído com sucesso.")
 
     def _on_failed(self, message: str) -> None:
