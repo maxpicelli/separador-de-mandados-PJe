@@ -119,19 +119,15 @@ def extrair_processo_prioritario(texto: str) -> str:
 ROTULOS_DEST = [
     r"Destinatário:\s*([^\n\r]+)",  r"DESTINATÁRIO:\s*([^\n\r]+)",
     r"Destinatario:\s*([^\n\r]+)",  r"DESTINATARIO:\s*([^\n\r]+)",
+    r"Destinatário/Testemunha:\s*([^\n\r]+)",  r"DESTINATÁRIO/TESTEMUNHA:\s*([^\n\r]+)",
+    r"Destinatario/Testemunha:\s*([^\n\r]+)",  r"DESTINATARIO/TESTEMUNHA:\s*([^\n\r]+)",
     r"Intimado:\s*([^\n\r]+)",      r"INTIMADO:\s*([^\n\r]+)",
     r"Notificado:\s*([^\n\r]+)",    r"NOTIFICADO:\s*([^\n\r]+)",
     r"Citado:\s*([^\n\r]+)",        r"CITADO:\s*([^\n\r]+)",
-    r"Reclamado:\s*([^\n\r]+)",     r"RECLAMADO:\s*([^\n\r]+)",
-    r"Executado:\s*([^\n\r]+)",     r"EXECUTADO:\s*([^\n\r]+)",
-    r"Réu:\s*([^\n\r]+)",           r"RÉU:\s*([^\n\r]+)",
-    r"Requerido:\s*([^\n\r]+)",     r"REQUERIDO:\s*([^\n\r]+)",
     r"Para:\s*([^\n\r]+)",          r"PARA:\s*([^\n\r]+)",
-    r"A:\s*([^\n\r]+)",             r"Ao:\s*([^\n\r]+)",
-    r"Autor:\s*([^\n\r]+)",         r"AUTOR:\s*([^\n\r]+)",
 ]
 
-DEST_LABEL_RE = re.compile(r"Destinatári[oa]\s*:", flags=re.IGNORECASE)
+DEST_LABEL_RE = re.compile(r"Destinatári[oa](?:/Testemunha)?\s*:", flags=re.IGNORECASE)
 DEST_STOP_RE = re.compile(
     r"^\s*(?:CPF|CNPJ|RG|ID|Endere[cç]o|CEP|Cidade|UF|Local|Data|Processo|N[úu]mero do processo|N[º°]\s*do\s*processo|Mandado|Assunto|Prazo|Referente|Oficial|Classe|Vara|Ju[ií]zo|Tribunal|Documento|Chave|C[oó]digo|Assinatura|Assinado|PJe|Destinat[aá]rio|Intimado|Notificado|Citado|Reclamado|Executado|R[ée]u|Requerido|Autor|A)\b[^:\n\r]{0,40}:",
     flags=re.IGNORECASE,
