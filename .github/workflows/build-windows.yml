@@ -43,12 +43,26 @@ jobs:
         run: |
           pwsh -ExecutionPolicy Bypass -File scripts\build_windows.ps1
 
+      - name: Package artifact
+        shell: pwsh
+        run: |
+          $artifactDir = Join-Path $env:GITHUB_WORKSPACE 'artifact\windows'
+          $zipPath = Join-Path $env:GITHUB_WORKSPACE 'artifact\separador-de-mandados-PJe-windows.zip'
+
+          New-Item -ItemType Directory -Force -Path $artifactDir | Out-Null
+          Copy-Item -Path 'dist\Separador-de-Mandados-PJe.exe' -Destination $artifactDir -Force
+          Copy-Item -Path 'README-Windows.md' -Destination $artifactDir -Force
+
+          if (Test-Path $zipPath) {
+            Remove-Item -Path $zipPath -Force
+          }
+
+          Compress-Archive -Path "$artifactDir\*" -DestinationPath $zipPath
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: separador-de-mandados-PJe-windows
-          path: |
-            dist\**
-            README-Windows.md
+          path: artifact\separador-de-mandados-PJe-windows.zip
           if-no-files-found: error
 
