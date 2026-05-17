@@ -131,52 +131,101 @@ ROTULOS_DEST = [
     r"Autor:\s*([^\n\r]+)",         r"AUTOR:\s*([^\n\r]+)",
 ]
 
+DEST_LABEL_RE = re.compile(r"Destinatári[oa]\s*:", flags=re.IGNORECASE)
+DEST_STOP_RE = re.compile(
+    r"^\s*(?:CPF|CNPJ|RG|ID|Endere[cç]o|CEP|Cidade|UF|Local|Data|Processo|N[úu]mero do processo|N[º°]\s*do\s*processo|Mandado|Assunto|Prazo|Referente|Oficial|Classe|Vara|Ju[ií]zo|Tribunal|Documento|Chave|C[oó]digo|Assinatura|Assinado|PJe|Destinat[aá]rio|Intimado|Notificado|Citado|Reclamado|Executado|R[ée]u|Requerido|Autor|A)\b[^:\n\r]{0,40}:",
+    flags=re.IGNORECASE,
+)
+DEST_ENDERECO_RE = re.compile(
+    r"^\s*(?:avenida|av\.?|rua|travessa|alameda|rodovia|estrada|praca|praça|lote|quadra|numero|n[º°]|cep|bairro|jardim|londrina|apto|apartamento)\b",
+    flags=re.IGNORECASE,
+)
+
+
+def _clean_destinatario_nome(nome: str) -> str:
+    nome = nome.strip()
+    nome = re.sub(r"\s+(CPF|CNPJ|RG|ID)\b.*$", "", nome, flags=re.IGNORECASE).strip()
+    nome = re.sub(r"^[^\wÁÉÍÓÚÂÊÔÃÕÇ]+", "", nome)
+    nome = re.sub(r"[^\wÁÉÍÓÚÂÊÔÃÕÇ\s()&.-]+$", "", nome)
+    nome = re.sub(r"\s+", " ", nome)
+    import unicodedata
+    return unicodedata.normalize("NFKD", nome).encode("ASCII", "ignore").decode("ASCII")
+
+
+def _is_valid_destinatario_nome(nome: str) -> bool:
+    return len(nome) >= 3 and bool(re.search(r"[A-Za-z]", nome))
+
+
+def _looks_like_destinatario_nome(nome: str, linha_original: str) -> bool:
+    linha_normalizada = linha_original.strip()
+    if not _is_valid_destinatario_nome(nome):
+        return False
+    if DEST_ENDERECO_RE.match(linha_normalizada):
+        return False
+    if re.search(r"https?://|www\.|@|\b[a-z0-9.-]+\.(?:jus|gov|com|br)\b", linha_normalizada, flags=re.IGNORECASE):
+        return False
+    if re.search(r"\b(manda|determina|promova|promover|avaliacao|avalia[cç][aã]o|bem\(ns\)|arrestado|bem como|por meio|validacao|valida[cç][aã]o|comparecer|prazo|serve|fica intimado|fica notificado|devera|deverá)\b", linha_normalizada, flags=re.IGNORECASE):
+        return False
+
+    letras = [char for char in nome if char.isalpha()]
+    if not letras:
+        return False
+    maiusculas = sum(1 for char in letras if char.isupper())
+    taxa_maiusculas = maiusculas / len(letras)
+    if taxa_maiusculas < 0.55:
+        return False
+
+    if nome.count(",") >= 1:
+        return False
+
+    if len(nome.split()) > 8:
+        return False
+
+    return True
+
+
+def _extract_destinatario_from_following_lines(texto: str) -> str:
+    matches = list(DEST_LABEL_RE.finditer(texto))
+    if not matches:
+        return "DESTINATARIO_NAO_ENCONTRADO"
+
+    trecho = texto[matches[-1].end(): matches[-1].end() + 1200]
+    linhas = trecho.splitlines()
+    if not linhas:
+        return "DESTINATARIO_NAO_ENCONTRADO"
+
+    same_line = _clean_destinatario_nome(linhas[0])
+    if _looks_like_destinatario_nome(same_line, linhas[0]):
+        return same_line
+
+    for linha in linhas[1:12]:
+        linha = linha.strip()
+        if not linha:
+            continue
+        if DEST_STOP_RE.match(linha):
+            break
+
+        nome = _clean_destinatario_nome(linha)
+        if not _looks_like_destinatario_nome(nome, linha):
+            continue
+        return nome
+
+    return "DESTINATARIO_NAO_ENCONTRADO"
+
 def extrair_destinatario(texto: str) -> str:
-    # Busca todas as ocorrências de Destinatário (com e sem acento) e pega a última
-    # Busca todas as ocorrências de Destinatário (com ou sem acento, com ou sem outros rótulos juntos)
-    matches = list(re.finditer(r"Destinatári[oa][^:]{0,30}:\s*([^\n\r]+)", texto, flags=re.IGNORECASE))
-    if matches:
-        m = matches[-1]  # pega a última ocorrência
-        nome = m.group(1)
-        nome = nome.strip()
-        # Mantém o nome completo, apenas limpa espaços e remove acentos
-        nome = re.sub(r"\s+(CPF|CNPJ|RG|ID)\b.*$", "", nome, flags=re.IGNORECASE).strip()
-        nome = re.sub(r"^[^\wÁÉÍÓÚÂÊÔÃÕÇ]+", "", nome)
-        nome = re.sub(r"[^\wÁÉÍÓÚÂÊÔÃÕÇ\s]+$", "", nome)
-        nome = re.sub(r"\s+", " ", nome)
-        # Remove acentos
-        import unicodedata
-        nome = unicodedata.normalize('NFKD', nome).encode('ASCII', 'ignore').decode('ASCII')
-        if len(nome) >= 3 and re.search(r"[A-Za-z]", nome):
-            return nome
-    # 2. Se não encontrar, tenta os outros rótulos
-    for pat in [
-        r"Intimado:\s*([^\n\r]+)",      r"INTIMADO:\s*([^\n\r]+)",
-        r"Notificado:\s*([^\n\r]+)",    r"NOTIFICADO:\s*([^\n\r]+)",
-        r"Citado:\s*([^\n\r]+)",        r"CITADO:\s*([^\n\r]+)",
-        r"Reclamado:\s*([^\n\r]+)",     r"RECLAMADO:\s*([^\n\r]+)",
-        r"Executado:\s*([^\n\r]+)",     r"EXECUTADO:\s*([^\n\r]+)",
-        r"Réu:\s*([^\n\r]+)",           r"RÉU:\s*([^\n\r]+)",
-        r"Requerido:\s*([^\n\r]+)",     r"REQUERIDO:\s*([^\n\r]+)",
-        r"Para:\s*([^\n\r]+)",          r"PARA:\s*([^\n\r]+)",
-        r"A:\s*([^\n\r]+)",             r"Ao:\s*([^\n\r]+)",
-        r"Autor:\s*([^\n\r]+)",         r"AUTOR:\s*([^\n\r]+)"
-    ]:
+    nome = _extract_destinatario_from_following_lines(texto)
+    if nome != "DESTINATARIO_NAO_ENCONTRADO":
+        return nome
+
+    for pat in ROTULOS_DEST:
         m = re.search(pat, texto, flags=re.MULTILINE)
-        if m:
-            bruto = m.group(1).strip()
-            nome = bruto
-            nome = re.sub(r"^.*?:", "", nome).strip()
-            # Mantém o nome completo, apenas limpa espaços e remove acentos
-            nome = re.sub(r"\s+(CPF|CNPJ|RG|ID)\b.*$", "", nome, flags=re.IGNORECASE).strip()
-            nome = re.sub(r"^[^\wÁÉÍÓÚÂÊÔÃÕÇ]+", "", nome)
-            nome = re.sub(r"[^\wÁÉÍÓÚÂÊÔÃÕÇ\s]+$", "", nome)
-            nome = re.sub(r"\s+", " ", nome)
-            # Remove acentos
-            import unicodedata
-            nome = unicodedata.normalize('NFKD', nome).encode('ASCII', 'ignore').decode('ASCII')
-            if len(nome) >= 3 and re.search(r"[A-Za-z]", nome):
-                return nome
+        if not m:
+            continue
+
+        nome = _clean_destinatario_nome(m.group(1))
+        if _is_valid_destinatario_nome(nome):
+            return nome
+
     return "DESTINATARIO_NAO_ENCONTRADO"
 
 def extrair_mandados(caminho_pdf: str):
