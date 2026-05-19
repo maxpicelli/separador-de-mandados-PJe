@@ -117,17 +117,17 @@ def extrair_processo_prioritario(texto: str) -> str:
     return "PROCESSO_NAO_ENCONTRADO"
 
 ROTULOS_DEST = [
-    r"Destinatário:\s*([^\n\r]+)",  r"DESTINATÁRIO:\s*([^\n\r]+)",
-    r"Destinatario:\s*([^\n\r]+)",  r"DESTINATARIO:\s*([^\n\r]+)",
-    r"Destinatário/Testemunha:\s*([^\n\r]+)",  r"DESTINATÁRIO/TESTEMUNHA:\s*([^\n\r]+)",
-    r"Destinatario/Testemunha:\s*([^\n\r]+)",  r"DESTINATARIO/TESTEMUNHA:\s*([^\n\r]+)",
+    r"Destinat[aá]ri(?:o|a|os|as):\s*([^\n\r]+)",
+    r"Destinat[aá]ri[oó]?\(a\)\(s\):\s*([^\n\r]+)",
+    r"Destinat[aá]ri(?:o|a|os|as)/Testemunha:\s*([^\n\r]+)",
     r"Intimado:\s*([^\n\r]+)",      r"INTIMADO:\s*([^\n\r]+)",
     r"Notificado:\s*([^\n\r]+)",    r"NOTIFICADO:\s*([^\n\r]+)",
     r"Citado:\s*([^\n\r]+)",        r"CITADO:\s*([^\n\r]+)",
     r"Para:\s*([^\n\r]+)",          r"PARA:\s*([^\n\r]+)",
 ]
 
-DEST_LABEL_RE = re.compile(r"Destinatári[oa](?:/Testemunha)?\s*:", flags=re.IGNORECASE)
+DEST_LABEL_RE = re.compile(r"(?:Destinat[aá]ri(?:o|a|os|as)|Destinat[aá]ri[oó]?\(a\)\(s\))(?:/Testemunha)?\s*:", flags=re.IGNORECASE)
+DEST_TIPO_PESSOA_RE = re.compile(r"^\s*Pessoa\s+(?:F[ií]sica|Jur[ií]dica)\s*:\s*", flags=re.IGNORECASE)
 DEST_STOP_RE = re.compile(
     r"^\s*(?:CPF|CNPJ|RG|ID|Endere[cç]o|CEP|Cidade|UF|Local|Data|Processo|N[úu]mero do processo|N[º°]\s*do\s*processo|Mandado|Assunto|Prazo|Referente|Oficial|Classe|Vara|Ju[ií]zo|Tribunal|Documento|Chave|C[oó]digo|Assinatura|Assinado|PJe|Destinat[aá]rio|Intimado|Notificado|Citado|Reclamado|Executado|R[ée]u|Requerido|Autor|A)\b[^:\n\r]{0,40}:",
     flags=re.IGNORECASE,
@@ -140,12 +140,35 @@ DEST_ENDERECO_RE = re.compile(
 
 def _clean_destinatario_nome(nome: str) -> str:
     nome = nome.strip()
+    nome = DEST_TIPO_PESSOA_RE.sub("", nome)
     nome = re.sub(r"\s+(CPF|CNPJ|RG|ID)\b.*$", "", nome, flags=re.IGNORECASE).strip()
     nome = re.sub(r"^[^\wÁÉÍÓÚÂÊÔÃÕÇ]+", "", nome)
     nome = re.sub(r"[^\wÁÉÍÓÚÂÊÔÃÕÇ\s()&.-]+$", "", nome)
     nome = re.sub(r"\s+", " ", nome)
     import unicodedata
     return unicodedata.normalize("NFKD", nome).encode("ASCII", "ignore").decode("ASCII")
+
+
+def _extract_destinatario_inline(nome: str) -> str:
+    candidato = nome.strip()
+    if not candidato:
+        return "DESTINATARIO_NAO_ENCONTRADO"
+
+    candidato = re.sub(
+        r"\s*\((?=[^)]*(?:P\s*ESSOA|CPF|CNPJ))[^)]*\)",
+        "",
+        candidato,
+        flags=re.IGNORECASE,
+    )
+    candidato = re.sub(
+        r"\s*\((?=[^)]*(?:P\s*ESSOA|CPF|CNPJ)).*$",
+        "",
+        candidato,
+        flags=re.IGNORECASE,
+    )
+    candidato = re.split(r"\s+E\s+", candidato, maxsplit=1, flags=re.IGNORECASE)[0]
+    candidato = _clean_destinatario_nome(candidato)
+    return candidato if _is_valid_destinatario_nome(candidato) else "DESTINATARIO_NAO_ENCONTRADO"
 
 
 def _is_valid_destinatario_nome(nome: str) -> bool:
@@ -194,6 +217,10 @@ def _extract_destinatario_from_following_lines(texto: str) -> str:
     if _looks_like_destinatario_nome(same_line, linhas[0]):
         return same_line
 
+    same_line_inline = _extract_destinatario_inline(linhas[0])
+    if same_line_inline != "DESTINATARIO_NAO_ENCONTRADO":
+        return same_line_inline
+
     for linha in linhas[1:12]:
         linha = linha.strip()
         if not linha:
@@ -203,6 +230,9 @@ def _extract_destinatario_from_following_lines(texto: str) -> str:
 
         nome = _clean_destinatario_nome(linha)
         if not _looks_like_destinatario_nome(nome, linha):
+            nome_inline = _extract_destinatario_inline(linha)
+            if nome_inline != "DESTINATARIO_NAO_ENCONTRADO":
+                return nome_inline
             continue
         return nome
 
@@ -327,7 +357,17 @@ def agrupar_inteligente(mandados):
         sem_dest = [d for d in docs if not d.get("destinatario") or d["destinatario"]=="DESTINATARIO_NAO_ENCONTRADO"]
         print(f"  📋 Com destinatário: {len(com_dest)}")
         print(f"  📎 Sem destinatário: {len(sem_dest)}")
-        if not com_dest: continue
+        if not com_dest:
+            if sem_dest:
+                print("    📁 Fallback sem destinatário: preservando documentos do processo")
+                grupos_finais[f"{processo}___0"] = {
+                    "nome_principal": "DESTINATARIO_NAO_ENCONTRADO",
+                    "mandados": list(sem_dest),
+                    "anexos": [],
+                    "nomes_encontrados": ["DESTINATARIO_NAO_ENCONTRADO"],
+                    "processo": processo,
+                }
+            continue
 
         grupos = []
         for d in com_dest:
