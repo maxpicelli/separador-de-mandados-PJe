@@ -1,8 +1,6 @@
 ---
 description: "Use when editing the destinatario extraction, grouping, or PDF naming flow for mandados in the Python backend. Covers protected parser behavior, additive fixes, duplicated logic, and no-regression rules."
-applyTo:
-  - "windows_app/backend.py"
-  - "Separador de Mandados/separador_mandados.py"
+applyTo: "{windows_app/backend.py,Separador de Mandados/separador_mandados.py}"
 ---
 # Destinatario Parser Guardrails
 
