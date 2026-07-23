@@ -24,6 +24,10 @@ except ImportError:
 try:
     import pdfplumber
 except ImportError:
+    # Pin cryptography a uma versão com wheel pré-compilado: versões mais novas
+    # não publicam wheel para este Python/arquitetura e o pip tenta compilar do
+    # zero (precisa de Rust/cargo/OpenSSL, que normalmente não estão instalados).
+    os.system(f"{sys.executable} -m pip install --user \"cryptography<45,>=41\"")
     os.system(f"{sys.executable} -m pip install --user pdfplumber")
     import pdfplumber
 

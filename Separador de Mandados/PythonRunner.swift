@@ -142,11 +142,16 @@ struct PythonRunner {
             return "Runtime Python pronto: \(python.path)"
         }
 
+        // cryptography (dependência transitiva de pdfplumber via pdfminer.six) não
+        // publica wheel pré-compilado para todas as combinações de Python/macOS.
+        // Sem isso, o pip tenta compilar do zero e falha por falta de Rust/OpenSSL.
+        // Fixamos uma faixa de versão com wheel disponível antes de instalar o resto.
+        let cryptographyPin = "cryptography<45,>=41"
         let installArgs: [String]
         if isBundledVenv(python) {
-            installArgs = ["-m", "pip", "install", "PyPDF2", "pdfplumber"]
+            installArgs = ["-m", "pip", "install", cryptographyPin, "PyPDF2", "pdfplumber"]
         } else {
-            installArgs = ["-m", "pip", "install", "--user", "PyPDF2", "pdfplumber"]
+            installArgs = ["-m", "pip", "install", "--user", cryptographyPin, "PyPDF2", "pdfplumber"]
         }
 
         let install = try execute(
