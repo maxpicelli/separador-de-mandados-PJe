@@ -57,3 +57,26 @@ Saída esperada:
 - A saída automática continua sendo `Mandados Separados` ao lado da entrada, salvo quando você escolhe uma pasta fixa de saída.
 - O workflow e o script local geram o `.ico` automaticamente antes do empacotamento.
 
+## Windows 11 bloqueia a abertura do .exe (Controle inteligente de aplicativos / SmartScreen)
+
+O executável gerado pelo PyInstaller não possui assinatura digital de um certificado reconhecido pela
+Microsoft. Por isso, ao baixar o `.exe` pela internet (ex.: OneDrive, e-mail, navegador), o Windows marca
+o arquivo com o "Mark of the Web" e o **Controle inteligente de aplicativos** (ou o SmartScreen) pode
+bloquear a execução por falta de reputação, mesmo o app não tendo nenhum problema real.
+
+Opções para quem já baixou o `.exe` e precisa rodar:
+
+1. **Desbloquear o arquivo**: clique com o botão direito no `.exe` → `Propriedades` → marque
+   `Desbloquear` (na parte inferior da aba `Geral`) → `Aplicar`/`OK`. Também funciona via PowerShell:
+   `Unblock-File -Path "C:\caminho\Separador-de-Mandados-PJe.exe"`.
+2. **Verificar o Controle inteligente de aplicativos**: `Configurações` → `Privacidade e segurança` →
+   `Segurança do Windows` → `Controle de aplicativos e navegador` → `Controle inteligente de
+   aplicativos`. Se ele ainda estiver em modo `Avaliação`, pode ser desativado ali. Se já estiver
+   `Ativado`, ele não pode mais ser desligado sem reinstalar o Windows — nesse caso, o desbloqueio do
+   item 1 costuma ser suficiente, pois o SAC libera o app depois de confirmado manualmente.
+3. **Assinatura de código (solução definitiva)**: para o Windows parar de exibir esse aviso para todo
+   mundo que baixa o app, é necessário assinar o `.exe` com um certificado de assinatura de código
+   (idealmente EV) ou usar o Azure Trusted Signing da Microsoft. Sem assinatura, o aviso tende a
+   aparecer sempre que o arquivo for baixado da internet, independentemente do quão "seguro" o app seja.
+
+

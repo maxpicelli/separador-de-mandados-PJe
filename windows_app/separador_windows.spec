@@ -15,6 +15,7 @@ hiddenimports = collect_submodules("pdfplumber") + collect_submodules("pypdf")
 icon_file = app_root / "assets" / "app_icon.ico"
 png_icon = app_root / "assets" / "app_icon.png"
 datas = [(str(png_icon), "windows_app/assets")] if png_icon.exists() else []
+version_file = app_root / "version_info.txt"
 
 block_cipher = None
 
@@ -43,7 +44,7 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
+    upx=False,
     upx_exclude=[],
     runtime_tmpdir=None,
     console=False,
@@ -53,4 +54,5 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
     icon=str(icon_file) if icon_file.exists() else None,
+    version=str(version_file) if version_file.exists() else None,
 )
