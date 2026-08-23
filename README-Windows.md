@@ -69,11 +69,12 @@ Opções para quem já baixou o `.exe` e precisa rodar:
 1. **Desbloquear o arquivo**: clique com o botão direito no `.exe` → `Propriedades` → marque
    `Desbloquear` (na parte inferior da aba `Geral`) → `Aplicar`/`OK`. Também funciona via PowerShell:
    `Unblock-File -Path "C:\caminho\Separador-de-Mandados-PJe.exe"`.
-2. **Verificar o Controle inteligente de aplicativos**: `Configurações` → `Privacidade e segurança` →
-   `Segurança do Windows` → `Controle de aplicativos e navegador` → `Controle inteligente de
-   aplicativos`. Se ele ainda estiver em modo `Avaliação`, pode ser desativado ali. Se já estiver
-   `Ativado`, ele não pode mais ser desligado sem reinstalar o Windows — nesse caso, o desbloqueio do
-   item 1 costuma ser suficiente, pois o SAC libera o app depois de confirmado manualmente.
+2. **Desativar o Controle Inteligente de Aplicativos**: abra o menu `Iniciar`, pesquise por
+   `Segurança do Windows` e abra o aplicativo. Entre em `Controle de aplicativos e navegador` →
+   `Configurações do Controle Inteligente de Aplicativos` → selecione `Desativado` e confirme a
+   solicitação do Windows. Esse recurso não permite liberar apenas um aplicativo. Depois de
+   desativá-lo, normalmente só é possível ativá-lo novamente redefinindo ou reinstalando o Windows;
+   use esta opção somente se você confia na origem do executável.
 3. **Assinatura de código (solução definitiva)**: para o Windows parar de exibir esse aviso para todo
    mundo que baixa o app, é necessário assinar o `.exe` com um certificado de assinatura de código
    (idealmente EV) ou usar o Azure Trusted Signing da Microsoft. Sem assinatura, o aviso tende a
