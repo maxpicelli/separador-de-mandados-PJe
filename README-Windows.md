@@ -50,6 +50,21 @@ Saída esperada:
 3. Rode o workflow `Build Windows EXE`.
 4. Baixe o artefato `separador-de-mandados-PJe-windows`.
 
+## Assinatura gratuita para projeto open source
+
+O projeto usa a licença MIT e pode solicitar assinatura gratuita pelo
+[SignPath Foundation](https://signpath.org/). Depois que o projeto for aprovado, instale o aplicativo
+SignPath no repositório e cadastre em `Settings` → `Secrets and variables` → `Actions`:
+
+- Secret `SIGNPATH_API_TOKEN`.
+- Variable `SIGNPATH_ORGANIZATION_ID`.
+- Variable `SIGNPATH_PROJECT_SLUG`.
+- Variable `SIGNPATH_SIGNING_POLICY_SLUG`.
+
+Sem esses valores, o workflow continua publicando normalmente o executável sem assinatura. Quando
+todos estiverem configurados, ele também publica `separador-de-mandados-PJe-windows-signed`, que é o
+artefato indicado para distribuição.
+
 ## Observações técnicas
 
 - A lógica usada como base veio do script mais completo de separação por grupos e anexos.

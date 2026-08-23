@@ -17,6 +17,11 @@ on:
 jobs:
   build-windows:
     runs-on: windows-latest
+    env:
+      SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+      SIGNPATH_ORGANIZATION_ID: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+      SIGNPATH_PROJECT_SLUG: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+      SIGNPATH_SIGNING_POLICY_SLUG: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
 
     steps:
       - name: Checkout repository
@@ -47,22 +52,44 @@ jobs:
         shell: pwsh
         run: |
           $artifactDir = Join-Path $env:GITHUB_WORKSPACE 'artifact\windows'
-          $zipPath = Join-Path $env:GITHUB_WORKSPACE 'artifact\separador-de-mandados-PJe-windows.zip'
 
           New-Item -ItemType Directory -Force -Path $artifactDir | Out-Null
           Copy-Item -Path 'dist\Separador-de-Mandados-PJe.exe' -Destination $artifactDir -Force
           Copy-Item -Path 'README-Windows.md' -Destination $artifactDir -Force
 
-          if (Test-Path $zipPath) {
-            Remove-Item -Path $zipPath -Force
-          }
-
-          Compress-Archive -Path "$artifactDir\*" -DestinationPath $zipPath
-
-      - name: Upload artifact
+      - name: Upload unsigned artifact
+        id: upload-unsigned-artifact
         uses: actions/upload-artifact@v4
         with:
           name: separador-de-mandados-PJe-windows
-          path: artifact\separador-de-mandados-PJe-windows.zip
+          path: artifact\windows
+          if-no-files-found: error
+
+      - name: Submit SignPath signing request
+        if: >-
+          env.SIGNPATH_API_TOKEN != '' &&
+          env.SIGNPATH_ORGANIZATION_ID != '' &&
+          env.SIGNPATH_PROJECT_SLUG != '' &&
+          env.SIGNPATH_SIGNING_POLICY_SLUG != ''
+        uses: signpath/github-action-submit-signing-request@v2
+        with:
+          api-token: ${{ env.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ env.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ env.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ env.SIGNPATH_SIGNING_POLICY_SLUG }}
+          github-artifact-id: ${{ steps.upload-unsigned-artifact.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: artifact\signed
+
+      - name: Upload signed artifact
+        if: >-
+          env.SIGNPATH_API_TOKEN != '' &&
+          env.SIGNPATH_ORGANIZATION_ID != '' &&
+          env.SIGNPATH_PROJECT_SLUG != '' &&
+          env.SIGNPATH_SIGNING_POLICY_SLUG != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: separador-de-mandados-PJe-windows-signed
+          path: artifact\signed
           if-no-files-found: error
 
