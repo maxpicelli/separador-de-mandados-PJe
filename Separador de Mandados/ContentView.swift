@@ -101,6 +101,10 @@ struct ContentView: View {
     @State private var queue: [URL] = []
     @State private var currentItem: URL? = nil
     @State private var isProcessing = false
+
+    // Apaga definitivamente o PDF baixado (ex.: document.pdf) após a separação.
+    // Pode ser desmarcado pelo usuário — a preferência fica salva.
+    @AppStorage("autoDeleteSourceFile") private var autoDeleteSource: Bool = true
     
     // Modo debug para arrastar header e ajustar tamanho
     @AppStorage("headerPositionX") private var savedX: Double = 275
@@ -162,7 +166,10 @@ struct ContentView: View {
 
                 // Todos os botões na parte inferior
                 twoColumnButtons
-                    .padding(.bottom, 15)
+                    .padding(.bottom, 10)
+
+                autoDeleteToggle
+                    .padding(.bottom, 8)
 
                 bottomBar
                     .padding(.bottom, 30)  // Um pouco acima da borda inferior
@@ -394,6 +401,45 @@ struct ContentView: View {
         }
     }
 
+    // MARK: - Opção: apagar arquivo de origem automaticamente
+
+    private var autoDeleteToggle: some View {
+        HStack {
+            Spacer()
+
+            Button {
+                autoDeleteSource.toggle()
+                messages.append(autoDeleteSource
+                                ? "✅ Exclusão DEFINITIVA do arquivo de origem ATIVADA (sem lixeira)."
+                                : "🚫 Exclusão automática do arquivo de origem CANCELADA.")
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: autoDeleteSource ? "checkmark.square.fill" : "square")
+                        .font(.system(size: 16, weight: .bold))
+                    Text("Apagar arquivo de origem após separar (definitivo, sem lixeira)")
+                        .font(.system(size: 12, weight: .semibold))
+                        .lineLimit(1)
+                }
+                .foregroundColor(Color(red: 1.0, green: 0.84, blue: 0.0))
+                .padding(.vertical, 7)
+                .padding(.horizontal, 14)
+                .background(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(Color.black.opacity(0.35))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .stroke(Color(red: 0.6, green: 0.5, blue: 0.2), lineWidth: 1.2)
+                )
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .help("Marcado: o PDF baixado (ex.: document.pdf) é apagado DEFINITIVAMENTE (sem lixeira) depois que a separação terminar. Desmarque para manter o arquivo original.")
+
+            Spacer()
+        }
+    }
+
     // MARK: - Barra inferior
 
     private var bottomBar: some View {
@@ -554,6 +600,7 @@ struct ContentView: View {
                     self.messages.append("📁 Saída:  \(saidaBucket.lastPathComponent)")
                     self.messages.append(contentsOf: out.split(separator: "\n").map(String.init))
                     self.messages.append("✅ Concluído: \(copied.lastPathComponent)")
+                    self.deleteSourceIfNeeded(originalURL)
                     self.isProcessing = false
                     NSWorkspace.shared.open(saidaBucket)
                     self.processNext()
@@ -569,6 +616,28 @@ struct ContentView: View {
                     self.processNext()
                 }
             }
+        }
+    }
+
+    /// Apaga DEFINITIVAMENTE o arquivo de origem depois de uma separação bem-sucedida.
+    /// Só roda quando a opção está marcada e a cópia em "NNN-PDFs de Origem" já existe.
+    private func deleteSourceIfNeeded(_ originalURL: URL) {
+        guard autoDeleteSource else { return }
+
+        let fm = FileManager.default
+        guard fm.fileExists(atPath: originalURL.path) else { return }
+
+        // Nunca apaga pastas, só o arquivo baixado.
+        let isDir = (try? originalURL.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
+        guard !isDir else { return }
+
+        // Nunca apaga algo que já esteja dentro da estrutura de trabalho do app.
+        guard !originalURL.standardizedFileURL.path.contains("/Mandados a Separar/") else { return }
+
+        do {
+            try fm.removeItem(at: originalURL)
+        } catch {
+            messages.append("⚠️ Não foi possível apagar o arquivo de origem \(originalURL.lastPathComponent): \(error.localizedDescription)")
         }
     }
 
