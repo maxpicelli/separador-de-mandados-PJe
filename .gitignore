@@ -32,3 +32,6 @@ dist/
 *.xcuserstate
 *.xcworkspace/xcuserdata/
 *.xcodeproj/xcuserdata/
+
+# Backups locais de imagens (fora do catálogo de assets)
+imagens-backup/

@@ -152,7 +152,18 @@ struct ContentView: View {
                         }
                     }
 
-                Spacer()  // Empurra tudo para baixo
+                // Controles à esquerda, logo abaixo do crédito e acima da arte "PJe PDF Split" do fundo.
+                VStack(alignment: .leading, spacing: 14) {
+                    twoColumnButtons
+
+                    autoDeleteToggle
+
+                    bottomBar
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.leading, 110)  // ~3 cm de respiro na borda esquerda
+
+                Spacer()
 
                 // Drop zone GRANDE centralizado
                 HStack {
@@ -162,17 +173,6 @@ struct ContentView: View {
                     Spacer()
                 }
                 .padding(.bottom, 40)
-                .offset(y: 75)  // Move o ícone 75 pontos (≈3cm) para baixo
-
-                // Todos os botões na parte inferior
-                twoColumnButtons
-                    .padding(.bottom, 10)
-
-                autoDeleteToggle
-                    .padding(.bottom, 8)
-
-                bottomBar
-                    .padding(.bottom, 30)  // Um pouco acima da borda inferior
 
                 if isProcessing {
                     HStack {
@@ -209,13 +209,8 @@ struct ContentView: View {
     private var header: some View {
         GeometryReader { geometry in
             VStack(alignment: .leading, spacing: 6) {
-                Text("PDF Split")  // Maiúsculas/minúsculas normal
-                    .font(.system(size: CGFloat(titleFontSize), weight: .black, design: .default))
-                    .tracking(1.5)
-                    .foregroundColor(Color(red: 0.55, green: 0.42, blue: 0.14))  // BRONZE/OURO VELHO
-                    .shadow(color: .black.opacity(0.5), radius: 1, x: 1, y: 1)
-
-                Text("Powered by Max.1974")
+                // O título "PJe PDF Split" já vem desenhado na imagem de fundo.
+                Text("Desenvolvido por Max.1974")
                     .font(.system(size: CGFloat(subtitleFontSize), weight: .bold, design: .default))
                     .tracking(0.5)
                     .foregroundColor(Color(red: 0.55, green: 0.42, blue: 0.14))  // MESMO BRONZE
@@ -335,8 +330,6 @@ struct ContentView: View {
 
     private var twoColumnButtons: some View {
         HStack(spacing: columnsHSpacing) {
-            Spacer()
-
             VStack(spacing: columnVSpacing) {
                 fatButton(title: "Escolher PDF/Pasta… (⌘O)", systemImage: "doc.badge.plus", tint: Color(red: 1.0, green: 0.84, blue: 0.0), prominent: true) {
                     openPickerAndProcess()
@@ -405,8 +398,6 @@ struct ContentView: View {
 
     private var autoDeleteToggle: some View {
         HStack {
-            Spacer()
-
             Button {
                 autoDeleteSource.toggle()
                 messages.append(autoDeleteSource
@@ -444,8 +435,6 @@ struct ContentView: View {
 
     private var bottomBar: some View {
         HStack(spacing: bottomBarSpacing) {
-            Spacer()
-
             fatButton(title: "Copiar log (⌘C)", systemImage: "doc.on.doc", tint: Color(red: 1.0, green: 0.84, blue: 0.0), prominent: false) {
                 copyLogToClipboard()
             }
